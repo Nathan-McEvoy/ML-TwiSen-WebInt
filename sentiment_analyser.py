@@ -40,5 +40,5 @@ pipeline.fit(X, y)
 y_pred = pipeline.predict(X_t)
 print(classification_report(y_t, y_pred))
 
-# joblib.dump(pipeline, 'ml_data/twitter_training.pkl')
+joblib.dump(pipeline, 'ml_data/twitter_training.pkl')
 print("Training Complete")
