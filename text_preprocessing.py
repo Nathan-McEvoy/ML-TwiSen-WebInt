@@ -1,71 +1,38 @@
 import nltk
 import string
-import inflect
+import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem.porter import PorterStemmer
 
-def text_to_lowercase(text):
-    return text.lower()
-
-p = inflect.engine()
-def convert_numbers(text):
-    temp_str = text.split()
-    new_str = []
-
-    for word in temp_str:
-        if word.isdigit():
-            temp = p.number_to_words(word)
-            new_str.append(temp)
-        else:
-            new_str.append(word)
-
-    temp_str = ' '.join(new_str)
-    return temp_str
-
-def remove_punctuation(text):
-    translator = str.maketrans('', '', string.punctuation)
-    return text.translate(translator)
-
-def remove_excess_whitespace(text):
-    return " ".join(text.split())
-
 nltk.download('punkt_tab')
-def remove_stopwords(text):
-    stop_words = set(stopwords.words('english'))
-    word_tokens = word_tokenize(text)
-    filtered_text = [word for word in word_tokens if word not in stop_words]
-    return " ".join(filtered_text)
-
-stemmer = PorterStemmer()
-def stem_text(text):
-    word_tokens = word_tokenize(text)
-    stems = [stemmer.stem(word) for word in word_tokens]
-    return " ".join(stems)
-
 nltk.download('wordnet')
+nltk.download('stopwords')
+
+stop_words = set(stopwords.words('english'))
+stemmer = PorterStemmer()
 lemmatizer = WordNetLemmatizer()
-def lemma_words(text):
-    word_tokens = word_tokenize(text)
-    lemmas = [lemmatizer.lemmatize(word) for word in word_tokens]
-    return " ".join(lemmas)
 
+def preprocess_text_series(series):
+    """Vectorised preprocessing for a pandas Series."""
+    series = series.str.lower()
 
-def pipeline(*funcs):
-    def inner(data):
-        result = data
-        for func in funcs:
-            result = func(result)
-        return result
-    return inner
+    translator = str.maketrans('', '', string.punctuation)
+    series = series.str.translate(translator)
 
-clean_data = pipeline(
-    lambda x: text_to_lowercase(x),
-    lambda x: convert_numbers(x),
-    lambda x: remove_punctuation(x),
-    lambda x: remove_excess_whitespace(x),
-    lambda x: remove_stopwords(x),
-    lambda x: stem_text(x),
-    lambda x: lemma_words(x)
-)
+    series = series.str.strip().str.replace(r'\s+', ' ', regex=True)
+
+    return series
+
+def tokenise_and_process(text):
+    """Tokenise and apply stopword removal, stemming and lemmatization in one pass."""
+    tokens = word_tokenize(text)
+    processed = [lemmatizer.lemmatize(stemmer.stem(word)) for word in tokens if word not in stop_words]
+    return ' '.join(processed)
+
+def clean_data(series):
+    """Main cleaning function for a pandas Series."""
+    series = preprocess_text_series(series)
+    series = series.apply(lambda x: tokenise_and_process(x) if isinstance(x, str) and x else '')
+    return series
