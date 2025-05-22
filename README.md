@@ -10,4 +10,4 @@ A Web-Integrated Machine Learning app that takes text as input and classifies it
 ## Frontend Setup
 1. Navigate to 'frontend/'
 2. Install dependencies: 'npm install'
-3. Run React: 'npm start'
+3. Run React: 'npm run dev'
