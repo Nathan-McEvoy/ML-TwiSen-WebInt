@@ -1,11 +1,11 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_smorest import Api, Blueprint, abort
 from schemas import TextInputSchema, TextOutputSchema
 import joblib
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 app.config["API_TITLE"] = "ML Text Sentiment Analysis"
 app.config["API_VERSION"] = "1.0"
