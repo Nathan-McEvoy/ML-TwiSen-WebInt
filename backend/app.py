@@ -2,6 +2,8 @@ from flask import Flask, jsonify
 from flask_smorest import Api, Blueprint, abort
 from schemas import TextInputSchema, TextOutputSchema
 import joblib
+import text_preprocessing
+import pandas as pd
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -25,7 +27,10 @@ mlTextSent_bp = Blueprint('mlTextSent_bp', __name__, url_prefix='/api')
 @mlTextSent_bp.response(200, TextOutputSchema)
 def check_sentiment(payload):
     text = payload["text"]
-    result = model.predict([text])[0]
+    input_series = pd.Series([text])
+    preprocessed_series = text_preprocessing.clean_data(input_series)
+    result = model.predict(preprocessed_series)[0]
+
     valid_outputs = ['Positive', 'Neutral', 'Negative', 'Irrelevant']
     if result not in valid_outputs:
         raise ValueError(f"{result} is not a valid sentiment value")
